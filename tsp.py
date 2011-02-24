@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+sys.setrecursionlimit(32)
 
 
 def load(filename):
@@ -33,8 +34,8 @@ def load(filename):
         # to search, use (dest in adj[src]).
         for line in f:
             edge_src_str, edge_dest_str, edge_wt_str = line.split()
-            edge_src = int(edge_src_str)
-            edge_dest = int(edge_dest_str)
+            edge_src = int(edge_src_str) - 1
+            edge_dest = int(edge_dest_str) - 1
             edge_wt = float(edge_wt_str)
             adj[edge_src][edge_dest] = edge_wt
             adj[edge_dest][edge_src] = edge_wt
@@ -58,12 +59,14 @@ def greedy_tsp(adj):
 
     def binary_insert(sorted_list, entry):
         def bsplice(start, end):
+            if start > end:
+                raise RuntimeError, 'start %d > end %d in bsplice' % (start, end)
             if start == end:
                 sorted_list[start:end] = [entry, ]
                 return
             mid = start + (end - start) / 2
             if entry > sorted_list[mid]:
-                bsplice(mid, end)
+                bsplice(mid + 1, end)
             else:
                 bsplice(start, mid)
         bsplice(0, len(sorted_list))
@@ -97,12 +100,15 @@ def greedy_tsp(adj):
         current_vertex = destination
         binary_insert(visited, current_vertex)
 
-    return (path, total_cost)
+    return (map(lambda x: str(x + 1), path), total_cost)
 
 
 def main(argv):
-    pass
+    for filename in argv:
+        graph = load(filename)
+        path = greedy_tsp(graph)
+        print '\n'.join(path[0] + ['-1', ])
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv[1:]))
