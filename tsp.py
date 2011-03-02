@@ -27,15 +27,15 @@ def load(filename):
         # list multiplication is faster, but in this case it creates
         # a list of pointers to the same dict. a comprehension must
         # be used.
-        adj = [{} for i in range(Nnodes)]
+        adj = [{} for i in range(Nnodes + 1)]
 
         # retrieve, parse, and store all edges.
         # to retrieve an edge weight, use (adj[src][dest]).
         # to search, use (dest in adj[src]).
         for line in f:
             edge_src_str, edge_dest_str, edge_wt_str = line.split()
-            edge_src = int(edge_src_str) - 1
-            edge_dest = int(edge_dest_str) - 1
+            edge_src = int(edge_src_str)
+            edge_dest = int(edge_dest_str)
             edge_wt = float(edge_wt_str)
             adj[edge_src][edge_dest] = edge_wt
             adj[edge_dest][edge_src] = edge_wt
@@ -83,29 +83,34 @@ def greedy_tsp(adj):
             return binary_search(upper, entry)
 
     def been_to(vertex):
-        return binary_search(visited, vertex) != -1
+        return binary_search(visited, vertex)
 
     def lightest_from(graph, vertex):
         outbound_edges = graph[vertex]
+        for vertex in visited:
+            if vertex in outbound_edges:
+                del outbound_edges[vertex]
         def lesser_weight(x, y):
             return (x if outbound_edges[x] < outbound_edges[y] \
                     else y)
         lightest_dest = reduce(lesser_weight, outbound_edges)
         return (lightest_dest, outbound_edges[lightest_dest])
 
-    while len(visited) != len(adj):
+    while len(visited) != len(adj) - 1:
+        print current_vertex, visited
+        path.append(current_vertex)
         destination, cost = lightest_from(adj, current_vertex)
         total_cost += cost
-        path.append(destination)
         current_vertex = destination
         binary_insert(visited, current_vertex)
 
-    return (map(lambda x: str(x + 1), path), total_cost)
+    return (map(str, path), total_cost)
 
 
 def main(argv):
     for filename in argv:
         graph = load(filename)
+        print graph
         path = greedy_tsp(graph)
         print '\n'.join(path[0] + ['-1', ])
 
